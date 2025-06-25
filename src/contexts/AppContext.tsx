@@ -1,58 +1,38 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Client, Message, BotFlow, RemarketingFlow, Campaign, BotConfig, Statistics } from '../types';
 import toast from 'react-hot-toast';
-import QRCode from 'qrcode';
 
 interface AppContextType {
-  // Authentication
   isAuthenticated: boolean;
   login: (password: string) => boolean;
   logout: () => void;
-  
-  // WhatsApp Connection
   isWhatsAppConnected: boolean;
   qrCode: string | null;
   connectWhatsApp: () => Promise<void>;
   disconnectWhatsApp: () => void;
-  
-  // Clients
   clients: Client[];
   addClient: (client: Omit<Client, 'id'>) => void;
   updateClient: (id: string, updates: Partial<Client>) => void;
   deleteClient: (id: string) => void;
   moveClientToCategory: (clientId: string, category: Client['category']) => void;
-  
-  // Messages
   messages: Message[];
   sendMessage: (clientId: string, content: string, type: Message['type'], mediaUrl?: string) => void;
-  
-  // Bot Flows
   botFlows: BotFlow[];
   addBotFlow: (flow: Omit<BotFlow, 'id'>) => void;
   updateBotFlow: (id: string, updates: Partial<BotFlow>) => void;
   deleteBotFlow: (id: string) => void;
-  
-  // Remarketing Flows
   remarketingFlows: RemarketingFlow[];
   addRemarketingFlow: (flow: Omit<RemarketingFlow, 'id'>) => void;
   updateRemarketingFlow: (id: string, updates: Partial<RemarketingFlow>) => void;
   deleteRemarketingFlow: (id: string) => void;
-  
-  // Campaigns
   campaigns: Campaign[];
   addCampaign: (campaign: Omit<Campaign, 'id'>) => void;
   updateCampaign: (id: string, updates: Partial<Campaign>) => void;
   deleteCampaign: (id: string) => void;
-  
-  // Bot Configuration
   botConfig: BotConfig;
   updateBotConfig: (updates: Partial<BotConfig>) => void;
-  
-  // Statistics
   statistics: Statistics;
   updateStatistics: () => void;
-  
-  // External Chat Integration
   publicChatUrl: string;
   updatePublicChatUrl: (url: string) => void;
 }
@@ -79,24 +59,6 @@ const mockClients: Client[] = [
     lastActivity: new Date(),
     status: 'active',
     campaignSource: 'Facebook Ads'
-  },
-  {
-    id: '2',
-    name: 'Maria Santos',
-    phone: '+5511888776655',
-    category: 'bought_correios',
-    lastMessage: 'Quando chega meu pedido?',
-    lastActivity: new Date(Date.now() - 86400000),
-    status: 'active'
-  },
-  {
-    id: '3',
-    name: 'Pedro Costa',
-    phone: '+5511777665544',
-    category: 'bought_logz',
-    lastMessage: 'Produto recebido, muito obrigado!',
-    lastActivity: new Date(Date.now() - 172800000),
-    status: 'active'
   }
 ];
 
@@ -129,25 +91,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     const auth = localStorage.getItem('zapbot_auth');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
-    }
-    
+    if (auth === 'true') setIsAuthenticated(true);
     const savedConfig = localStorage.getItem('zapbot_config');
-    if (savedConfig) {
-      setBotConfig(JSON.parse(savedConfig));
-    }
-
+    if (savedConfig) setBotConfig(JSON.parse(savedConfig));
     const savedChatUrl = localStorage.getItem('zapbot_public_chat_url');
-    if (savedChatUrl) {
-      setPublicChatUrl(savedChatUrl);
-    }
-
+    if (savedChatUrl) setPublicChatUrl(savedChatUrl);
     const savedWhatsAppConnection = localStorage.getItem('zapbot_whatsapp_connected');
-    if (savedWhatsAppConnection === 'true') {
-      setIsWhatsAppConnected(true);
-    }
-    
+    if (savedWhatsAppConnection === 'true') setIsWhatsAppConnected(true);
     updateStatistics();
   }, []);
 
@@ -171,34 +121,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const connectWhatsApp = async (): Promise<void> => {
     try {
       setQrCode('loading');
-      toast.loading('Gerando QR Code...', { id: 'qr' });
-      
-      // Generate real QR code with session data for Venom integration
-      const sessionData = `zapbot-venom-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const qrCodeDataURL = await QRCode.toDataURL(sessionData, {
-        width: 256,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        },
-        errorCorrectionLevel: 'M'
-      });
-      
-      setTimeout(() => {
-        setQrCode(qrCodeDataURL);
-        toast.success('QR Code gerado! Escaneie com seu WhatsApp Business', { id: 'qr' });
-        
-        // Simulate connection after scanning (8 seconds)
-        setTimeout(() => {
-          setIsWhatsAppConnected(true);
-          setQrCode(null);
-          localStorage.setItem('zapbot_whatsapp_connected', 'true');
-          toast.success('WhatsApp Business conectado com sucesso!');
-        }, 8000);
-      }, 2000);
+      toast.loading('Conectando ao servidor do bot...', { id: 'qr' });
+
+      const response = await fetch("http://localhost:3000/qr"); // Altere aqui quando subir no Render
+      const data = await response.json();
+
+      if (data.qrCode) {
+        setQrCode(data.qrCode);
+        toast.success('QR Code recebido com sucesso!', { id: 'qr' });
+      } else {
+        throw new Error("QR Code não recebido");
+      }
     } catch (error) {
-      toast.error('Erro ao gerar QR Code', { id: 'qr' });
+      console.error("Erro ao conectar com o backend:", error);
+      toast.error('Erro ao conectar com o bot', { id: 'qr' });
       setQrCode(null);
     }
   };
@@ -217,9 +153,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateClient = (id: string, updates: Partial<Client>) => {
-    setClients(prev => prev.map(client => 
-      client.id === id ? { ...client, ...updates } : client
-    ));
+    setClients(prev => prev.map(client => client.id === id ? { ...client, ...updates } : client));
     toast.success('Cliente atualizado com sucesso!');
   };
 
@@ -255,9 +189,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateBotFlow = (id: string, updates: Partial<BotFlow>) => {
-    setBotFlows(prev => prev.map(flow => 
-      flow.id === id ? { ...flow, ...updates } : flow
-    ));
+    setBotFlows(prev => prev.map(flow => flow.id === id ? { ...flow, ...updates } : flow));
     toast.success('Fluxo atualizado com sucesso!');
   };
 
@@ -269,36 +201,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addRemarketingFlow = (flow: Omit<RemarketingFlow, 'id'>) => {
     const newFlow = { ...flow, id: generateId() };
     setRemarketingFlows(prev => [...prev, newFlow]);
-    
-    // Update campaign with remarketing flow ID
-    if (flow.campaignId) {
-      updateCampaign(flow.campaignId, { remarketingFlowId: newFlow.id });
-    }
-    
+    if (flow.campaignId) updateCampaign(flow.campaignId, { remarketingFlowId: newFlow.id });
     toast.success('Fluxo de remarketing criado com sucesso!');
   };
 
   const updateRemarketingFlow = (id: string, updates: Partial<RemarketingFlow>) => {
-    setRemarketingFlows(prev => prev.map(flow => 
-      flow.id === id ? { ...flow, ...updates } : flow
-    ));
+    setRemarketingFlows(prev => prev.map(flow => flow.id === id ? { ...flow, ...updates } : flow));
     toast.success('Fluxo de remarketing atualizado com sucesso!');
   };
 
   const deleteRemarketingFlow = (id: string) => {
     const flow = remarketingFlows.find(f => f.id === id);
-    if (flow && flow.campaignId) {
-      // Remove remarketing flow ID from campaign
-      updateCampaign(flow.campaignId, { remarketingFlowId: undefined });
-    }
-    
+    if (flow && flow.campaignId) updateCampaign(flow.campaignId, { remarketingFlowId: undefined });
     setRemarketingFlows(prev => prev.filter(flow => flow.id !== id));
     toast.success('Fluxo de remarketing removido com sucesso!');
   };
 
   const addCampaign = (campaign: Omit<Campaign, 'id'>) => {
-    const newCampaign = { 
-      ...campaign, 
+    const newCampaign = {
+      ...campaign,
       id: generateId(),
       sentCount: 0,
       openCount: 0,
@@ -309,23 +230,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateCampaign = (id: string, updates: Partial<Campaign>) => {
-    setCampaigns(prev => prev.map(campaign => 
-      campaign.id === id ? { ...campaign, ...updates } : campaign
-    ));
-    
-    // Don't show toast for internal updates (like remarketing flow ID)
+    setCampaigns(prev => prev.map(campaign => campaign.id === id ? { ...campaign, ...updates } : campaign));
     if (!updates.remarketingFlowId && updates.remarketingFlowId !== undefined) {
       toast.success('Campanha atualizada com sucesso!');
     }
   };
 
   const deleteCampaign = (id: string) => {
-    // Remove associated remarketing flows
     const associatedFlows = remarketingFlows.filter(flow => flow.campaignId === id);
     associatedFlows.forEach(flow => {
       setRemarketingFlows(prev => prev.filter(f => f.id !== flow.id));
     });
-    
     setCampaigns(prev => prev.filter(campaign => campaign.id !== id));
     toast.success('Campanha removida com sucesso!');
   };
@@ -348,7 +263,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const activeConversations = clients.filter(c => c.status === 'active').length;
     const abandonedConversations = clients.filter(c => c.status === 'abandoned').length;
     const responseRate = totalConversations > 0 ? (activeConversations / totalConversations) * 100 : 0;
-    const conversionRate = totalConversations > 0 ? 
+    const conversionRate = totalConversations > 0 ?
       (clients.filter(c => c.category !== 'not_bought').length / totalConversations) * 100 : 0;
 
     setStatistics({
@@ -357,7 +272,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       abandonedConversations,
       responseRate,
       conversionRate,
-      dailyMessages: messages.filter(m => 
+      dailyMessages: messages.filter(m =>
         new Date(m.timestamp).toDateString() === new Date().toDateString()
       ).length
     });
@@ -367,43 +282,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateStatistics();
   }, [clients, messages]);
 
-  const value: AppContextType = {
-    isAuthenticated,
-    login,
-    logout,
-    isWhatsAppConnected,
-    qrCode,
-    connectWhatsApp,
-    disconnectWhatsApp,
-    clients,
-    addClient,
-    updateClient,
-    deleteClient,
-    moveClientToCategory,
-    messages,
-    sendMessage,
-    botFlows,
-    addBotFlow,
-    updateBotFlow,
-    deleteBotFlow,
-    remarketingFlows,
-    addRemarketingFlow,
-    updateRemarketingFlow,
-    deleteRemarketingFlow,
-    campaigns,
-    addCampaign,
-    updateCampaign,
-    deleteCampaign,
-    botConfig,
-    updateBotConfig,
-    statistics,
-    updateStatistics,
-    publicChatUrl,
-    updatePublicChatUrl
-  };
-
   return (
-    <AppContext.Provider value={value}>
+    <AppContext.Provider value={{
+      isAuthenticated,
+      login,
+      logout,
+      isWhatsAppConnected,
+      qrCode,
+      connectWhatsApp,
+      disconnectWhatsApp,
+      clients,
+      addClient,
+      updateClient,
+      deleteClient,
+      moveClientToCategory,
+      messages,
+      sendMessage,
+      botFlows,
+      addBotFlow,
+      updateBotFlow,
+      deleteBotFlow,
+      remarketingFlows,
+      addRemarketingFlow,
+      updateRemarketingFlow,
+      deleteRemarketingFlow,
+      campaigns,
+      addCampaign,
+      updateCampaign,
+      deleteCampaign,
+      botConfig,
+      updateBotConfig,
+      statistics,
+      updateStatistics,
+      publicChatUrl,
+      updatePublicChatUrl
+    }}>
       {children}
     </AppContext.Provider>
   );
