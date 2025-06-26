@@ -118,12 +118,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast.success('Logout realizado com sucesso!');
   };
 
+  // ✅ CORRIGIDO PARA USAR VITE_API_URL
   const connectWhatsApp = async (): Promise<void> => {
     try {
       setQrCode('loading');
       toast.loading('Conectando ao servidor do bot...', { id: 'qr' });
 
-      const response = await fetch("http://localhost:3000/qr"); // Altere aqui quando subir no Render
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/qr`);
       const data = await response.json();
 
       if (data.qrCode) {
@@ -263,8 +264,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const activeConversations = clients.filter(c => c.status === 'active').length;
     const abandonedConversations = clients.filter(c => c.status === 'abandoned').length;
     const responseRate = totalConversations > 0 ? (activeConversations / totalConversations) * 100 : 0;
-    const conversionRate = totalConversations > 0 ?
-      (clients.filter(c => c.category !== 'not_bought').length / totalConversations) * 100 : 0;
+    const conversionRate = totalConversations > 0 ? (clients.filter(c => c.category !== 'not_bought').length / totalConversations) * 100 : 0;
 
     setStatistics({
       totalConversations,
