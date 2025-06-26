@@ -5,16 +5,38 @@ import { useApp } from '../contexts/AppContext';
 const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null); // Para armazenar erros
   const { login } = useApp();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    setTimeout(() => {
-      login(password);
+    setError(null); // Reseta o erro
+
+    // Envia a senha para o backend para validação
+    try {
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        // Senha correta, chama o login
+        login(password);
+        setIsLoading(false);
+      } else {
+        setError(data.message); // Exibe erro de senha incorreta
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError('Erro ao comunicar com o servidor. Tente novamente.');
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -46,6 +68,8 @@ const Login: React.FC = () => {
               />
             </div>
             <p className="text-xs text-gray-500 mt-2">Senha padrão: admin123</p>
+
+            {error && <p className="text-red-500 text-xs mt-2">{error}</p>} {/* Exibe erro de senha incorreta */}
           </div>
 
           <button
