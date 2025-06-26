@@ -5,36 +5,22 @@ import { useApp } from '../contexts/AppContext';
 const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null); // Para armazenar erros
+  const [error, setError] = useState<string | null>(null);
   const { login } = useApp();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null); // Reseta o erro
+    setError(null);
 
-    // Envia a senha para o backend para validação
     try {
-      const response = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await response.json();
-
-      if (response.status === 200) {
-        // Senha correta, chama o login
-        login(password);
-        setIsLoading(false);
-      } else {
-        setError(data.message); // Exibe erro de senha incorreta
-        setIsLoading(false);
+      const success = await login(password); // chama login do contexto que faz fetch pro backend
+      if (!success) {
+        setError('Senha incorreta ou erro no servidor');
       }
-    } catch (err) {
+    } catch {
       setError('Erro ao comunicar com o servidor. Tente novamente.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -69,7 +55,7 @@ const Login: React.FC = () => {
             </div>
             <p className="text-xs text-gray-500 mt-2">Senha padrão: admin123</p>
 
-            {error && <p className="text-red-500 text-xs mt-2">{error}</p>} {/* Exibe erro de senha incorreta */}
+            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
           </div>
 
           <button

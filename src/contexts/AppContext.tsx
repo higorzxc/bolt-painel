@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 
 interface AppContextType {
   isAuthenticated: boolean;
-  login: (password: string) => boolean;
+  login: (password: string) => Promise<boolean>;  // Alterado para Promise<boolean>
   logout: () => void;
   isWhatsAppConnected: boolean;
   qrCode: string | null;
@@ -101,15 +101,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateStatistics();
   }, []);
 
-  const login = (password: string): boolean => {
-    if (password === 'admin123') {
+  // Login corrigido para chamar o backend
+  const login = async (password: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+      });
+
+      if (!response.ok) {
+        toast.error('Senha incorreta ou erro no servidor!');
+        return false;
+      }
+
       setIsAuthenticated(true);
       localStorage.setItem('zapbot_auth', 'true');
       toast.success('Login realizado com sucesso!');
       return true;
+
+    } catch (error) {
+      console.error('Erro na comunicação com o backend:', error);
+      toast.error('Erro ao conectar com o servidor!');
+      return false;
     }
-    toast.error('Senha incorreta!');
-    return false;
   };
 
   const logout = () => {
@@ -118,7 +135,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast.success('Logout realizado com sucesso!');
   };
 
-  // ✅ CORRIGIDO PARA USAR VITE_API_URL
   const connectWhatsApp = async (): Promise<void> => {
     try {
       setQrCode('loading');
