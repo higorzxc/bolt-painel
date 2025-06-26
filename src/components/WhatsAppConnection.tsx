@@ -3,8 +3,20 @@ import { Smartphone, Wifi, WifiOff, QrCode, CheckCircle } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
 const WhatsAppConnection: React.FC = () => {
-  const { isWhatsAppConnected, qrCode, disconnectWhatsApp } = useApp();
-  const [isConnecting] = useState(false);
+  const {
+    isWhatsAppConnected,
+    qrCode,
+    connectWhatsApp,
+    disconnectWhatsApp
+  } = useApp();
+
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    await connectWhatsApp();
+    setIsConnecting(false);
+  };
 
   return (
     <div className="p-6">
@@ -40,6 +52,17 @@ const WhatsAppConnection: React.FC = () => {
               {isWhatsAppConnected ? 'Conectado' : 'Desconectado'}
             </div>
           </div>
+
+          {!isWhatsAppConnected && !qrCode && !isConnecting && (
+            <div className="text-center">
+              <button
+                onClick={handleConnect}
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+              >
+                Conectar WhatsApp
+              </button>
+            </div>
+          )}
 
           {(qrCode === 'loading' || isConnecting) && (
             <div className="text-center py-8">

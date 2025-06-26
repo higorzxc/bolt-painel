@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-// Conecta com o backend no Render via socket
+// Conecta com o backend via socket
 const socket = io(import.meta.env.VITE_API_URL, {
-  transports: ["websocket"],
+  transports: ["websocket"]
 });
 
 export default function QRCodeDisplay() {
@@ -11,29 +11,36 @@ export default function QRCodeDisplay() {
   const [status, setStatus] = useState("Conectando ao bot...");
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("🔌 Conectado ao backend");
+    const handleConnect = () => {
+      console.log("✅ Conectado ao backend");
       setStatus("Aguardando QR Code...");
-    });
+    };
 
-    socket.on("qr", (data) => {
+    const handleQr = (data) => {
       console.log("📲 QR Code recebido:", data.qr);
       setQrCode(data.qr);
       setStatus("Escaneie o QR Code abaixo:");
-    });
+    };
 
-    socket.on("disconnect", () => {
+    const handleDisconnect = () => {
       console.log("❌ Desconectado do backend");
       setStatus("Desconectado do bot");
-    });
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("qr", handleQr);
+    socket.on("disconnect", handleDisconnect);
 
     return () => {
+      socket.off("connect", handleConnect);
+      socket.off("qr", handleQr);
+      socket.off("disconnect", handleDisconnect);
       socket.disconnect();
     };
   }, []);
 
   return (
-    <div style={{ textAlign: "center", marginTop: 50 }}>
+    <div style={{ textAlign: "center", marginTop: 40 }}>
       <h2>{status}</h2>
       {qrCode ? (
         <img
@@ -42,7 +49,7 @@ export default function QRCodeDisplay() {
           style={{ width: 300, height: 300 }}
         />
       ) : (
-        <p>...</p>
+        <p>Carregando QR Code...</p>
       )}
     </div>
   );
