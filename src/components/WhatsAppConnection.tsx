@@ -3,17 +3,8 @@ import { Smartphone, Wifi, WifiOff, QrCode, CheckCircle } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
 const WhatsAppConnection: React.FC = () => {
-  const { isWhatsAppConnected, qrCode, connectWhatsApp, disconnectWhatsApp } = useApp();
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    try {
-      await connectWhatsApp();
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+  const { isWhatsAppConnected, qrCode, disconnectWhatsApp } = useApp();
+  const [isConnecting] = useState(false);
 
   return (
     <div className="p-6">
@@ -52,22 +43,6 @@ const WhatsAppConnection: React.FC = () => {
             </div>
           </div>
 
-          {!isWhatsAppConnected && !qrCode && !isConnecting && (
-            <div className="text-center py-8">
-              <QrCode className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-6">
-                Clique no botão abaixo para gerar o QR Code e conectar seu WhatsApp Business
-              </p>
-              <button
-                onClick={handleConnect}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center mx-auto"
-              >
-                <Smartphone className="w-5 h-5 mr-2" />
-                Conectar WhatsApp Business
-              </button>
-            </div>
-          )}
-
           {(qrCode === 'loading' || isConnecting) && (
             <div className="text-center py-8">
               <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -76,7 +51,7 @@ const WhatsAppConnection: React.FC = () => {
             </div>
           )}
 
-          {qrCode && qrCode !== 'loading' && (
+          {qrCode && qrCode !== 'loading' && !isWhatsAppConnected && (
             <div className="text-center py-8">
               <div className="bg-white p-6 rounded-lg shadow-sm mb-4 inline-block">
                 <img src={qrCode} alt="QR Code WhatsApp" className="w-64 h-64 mx-auto" />
@@ -148,6 +123,7 @@ const WhatsAppConnection: React.FC = () => {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
