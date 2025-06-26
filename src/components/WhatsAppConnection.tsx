@@ -26,9 +26,7 @@ const WhatsAppConnection: React.FC = () => {
                 <WifiOff className="w-6 h-6 text-red-600 mr-3" />
               )}
               <div>
-                <h3 className="font-semibold text-gray-900">
-                  Status da Conexão
-                </h3>
+                <h3 className="font-semibold text-gray-900">Status da Conexão</h3>
                 <p className="text-sm text-gray-600">
                   {isWhatsAppConnected ? 'WhatsApp conectado e funcionando' : 'WhatsApp desconectado'}
                 </p>
@@ -65,7 +63,7 @@ const WhatsAppConnection: React.FC = () => {
               </div>
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
-                  ⏱️ O QR Code expira em alguns minutos. Se não conseguir escanear, gere um novo.
+                  ⏱️ O QR Code expira em alguns minutos. Se não conseguir escanear, reinicie o bot.
                 </p>
               </div>
             </div>
@@ -107,7 +105,6 @@ const WhatsAppConnection: React.FC = () => {
           </div>
         </div>
 
-        {/* Venom API Integration Info */}
         <div className="mt-6 bg-green-50 border-l-4 border-green-400 p-4 rounded">
           <div className="flex">
             <div className="ml-3">
