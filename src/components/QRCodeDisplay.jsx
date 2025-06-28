@@ -1,22 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-
-// Conecta com o backend via socket
-const socket = io(import.meta.env.VITE_API_URL, {
-  transports: ["websocket"]
-});
+import { io, Socket } from "socket.io-client";
 
 export default function QRCodeDisplay() {
   const [qrCode, setQrCode] = useState("");
   const [status, setStatus] = useState("Conectando ao bot...");
 
   useEffect(() => {
+    // URL da API no .env, ou fallback local
+    const socketUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+    const socket: Socket = io(socketUrl, {
+      transports: ["websocket"],
+    });
+
     const handleConnect = () => {
       console.log("✅ Conectado ao backend");
       setStatus("Aguardando QR Code...");
     };
 
-    const handleQr = (data) => {
+    const handleQr = (data: { qr: string }) => {
       console.log("📲 QR Code recebido:", data.qr);
       setQrCode(data.qr);
       setStatus("Escaneie o QR Code abaixo:");
