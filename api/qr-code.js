@@ -1,14 +1,20 @@
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { qrCode } = req.body; // Pegando o QR Code enviado no corpo da requisição
+  if (req.method === 'GET') {  // Mudamos para GET, pois queremos buscar o QR Code
+    try {
+      // Fazendo a requisição para o Venom-Backend através da URL gerada pelo Cloudflare Tunnel
+      const response = await fetch('https://dispatched-objects-informational-camcorder.trycloudflare.com/qr');  // URL do Cloudflare Tunnel
 
-    // Aqui você pode salvar o QR Code em uma variável, banco de dados ou apenas retornar ele
-    console.log("QR Code recebido:", qrCode);
-
-    // Para esse exemplo, vamos apenas retornar o QR Code como resposta
-    res.status(200).json({ qrCode });
+      // Verifica se a resposta é válida
+      if (response.ok) {
+        const data = await response.json();  // Pega o QR Code da resposta JSON
+        res.status(200).json({ qrCode: data.qrCode });  // Retorna o QR Code para o painel
+      } else {
+        res.status(500).json({ error: 'Erro ao buscar QR Code do Venom-Backend' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Erro na requisição ao Venom-Backend' });
+    }
   } else {
-    // Caso o método não seja POST, respondemos com erro
-    res.status(405).json({ message: 'Método não permitido' });
+    res.status(405).json({ error: 'Método não permitido' });  // Se não for GET, retorna erro de método não permitido
   }
 }
