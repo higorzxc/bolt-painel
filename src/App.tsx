@@ -3,13 +3,22 @@ import { Toaster } from 'react-hot-toast';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import WhatsAppPanel from './components/WhatsAppPanel'; // IMPORTANDO O WhatsAppPanel
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated } = useApp();
+  const { isAuthenticated } = useApp(); // Verificando se o usuário está autenticado
 
   return (
     <>
-      {isAuthenticated ? <Dashboard /> : <Login />}
+      {isAuthenticated ? (
+        <>
+          <Dashboard /> {/* Exibe o Dashboard quando autenticado */}
+          <WhatsAppPanel /> {/* Exibe o QR Code com o WhatsAppPanel */}
+        </>
+      ) : (
+        <Login /> // Exibe a tela de login quando não autenticado
+      )}
+
       <Toaster
         position="top-right"
         toastOptions={{
