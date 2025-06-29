@@ -14,12 +14,24 @@ const Login: React.FC = () => {
     setError(null);
 
     try {
-      const success = await login(password); // login do contexto com fetch no backend
-      if (!success) {
-        setError('Senha incorreta ou erro no servidor.');
+      // Corrigir a URL para a API de login na Vercel
+      const response = await fetch('https://bolt-painel-eight.vercel.app/api/login', {  // URL corrigida
+        method: 'POST',
+        body: JSON.stringify({ password }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Verifica se a resposta foi bem-sucedida
+      const data = await response.json();
+      if (response.ok) {
+        login(password); // Sucesso, realizar login com a senha
+      } else {
+        setError(data.message || 'Senha incorreta ou erro no servidor.');
         setPassword('');
       }
-    } catch {
+    } catch (error) {
       setError('Erro ao comunicar com o servidor. Tente novamente.');
     } finally {
       setIsLoading(false);
