@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import WhatsAppPanel from './components/WhatsAppPanel'; // IMPORTANDO O WhatsAppPanel
+import WhatsAppPanel from './components/WhatsAppPanel.js'; // IMPORTANDO O WhatsAppPanel.js
 
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useApp(); // Verificando se o usuário está autenticado
